@@ -6,7 +6,7 @@
 
 WHAT THIS FOLDER GIVES YOU
 ------------------------------------------------------------------------------
-A private voice studio that opens in your browser. You type a script, pick a
+A private voice studio that opens in its own window. You type a script, pick a
 voice, and it produces a .wav file you can drop straight into CapCut or
 Premiere Pro. It sounds like the expensive cloud services, but nothing ever
 leaves your computer.
@@ -26,7 +26,11 @@ everything up and put an icon on your desktop.
     It takes about 40 to 60 seconds to open, because it loads a real AI model
     into memory. A black window shows you each step as it goes, so you can see
     it is working. It is not frozen - give it a moment. The studio then opens
-    in your browser.
+    in its own window, with no address bar and no tabs. It looks and behaves
+    like an installed program, because that is what it is.
+
+    When you are finished, simply close the studio window. That stops the
+    studio completely - nothing is left running in the background.
 
     Or press the Windows key, type "voice", and hit Enter. Same thing.
 
@@ -118,8 +122,10 @@ The setup stopped halfway
 Nothing happens when I double-click
    Right-click the .bat file, choose "Run as administrator".
 
-The browser does not open
-   Open it yourself and go to:   http://127.0.0.1:7860
+The studio window does not open
+   Wait a full minute - the first launch is the slowest one. If it still does
+   not appear, open your browser by hand and go to:  http://127.0.0.1:7860
+   That address simply means "this computer". The studio is running either way.
 
 
 TWO IMPORTANT NOTES ABOUT THE SETUP

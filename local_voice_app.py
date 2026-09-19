@@ -478,18 +478,28 @@ def main():
     # silently used a GPU on some machines then the on-camera speed test would
     # not be reproducible for anyone without one. Forcing CPU makes the promise
     # true and the benchmark honest.
+    #
+    # Measured on the real install: pip gives Windows a CPU-only torch
+    # (2.14.0+cpu, torch.version.cuda is None), so a GPU could not be used even
+    # if we asked. The pin is still worth keeping - it guarantees CPU on any
+    # machine, including one where somebody has installed a CUDA build by hand.
     try:
         import torch as _torch
         _cuda_present = bool(_torch.cuda.is_available())
+        _cuda_built = _torch.version.cuda is not None
     except Exception:
         _cuda_present = False
+        _cuda_built = False
 
     line("")
     line("Running on CPU only - no graphics card used.")
     if _cuda_present:
         line("  (a CUDA GPU is present but is deliberately left unused)")
+    elif not _cuda_built:
+        line("  (the engine installed here has no GPU support at all, so every")
+        line("   PC gets exactly the same result - graphics card or not)")
     else:
-        line("  (no CUDA GPU on this machine - it does not need one)")
+        line("  (this PC has no CUDA GPU, and it does not need one)")
     line("")
 
     t0 = time.time()

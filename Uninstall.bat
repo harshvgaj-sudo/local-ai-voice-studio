@@ -32,12 +32,37 @@ echo   %USERPROFILE%\.cache\huggingface\hub\models--hexgrad--Kokoro-82M
 echo.
 choice /C YN /M "   Delete the voice model too (about 330 MB)"
 if errorlevel 2 goto done
-if exist "%USERPROFILE%\.cache\huggingface\hub\models--hexgrad--Kokoro-82M" (
-  rmdir /s /q "%USERPROFILE%\.cache\huggingface\hub\models--hexgrad--Kokoro-82M" 2>nul
-  echo   [ok] Voice model deleted.
-) else (
+
+set "HUB=%USERPROFILE%\.cache\huggingface\hub"
+set "MODEL=%HUB%\models--hexgrad--Kokoro-82M"
+
+if not exist "%MODEL%" (
   echo   Voice model was not found - nothing to delete.
+  goto done
 )
+
+rem 1. remove the model folder itself
+rmdir /s /q "%MODEL%" 2>nul
+
+rem 2. remove the shared blob data that belongs to that model.
+rem Newer huggingface_hub keeps the real file bytes in a shared "blobs"
+rem folder, and a matching .refs file records which model each blob belongs
+rem to. Deleting ONLY the model folder would leave the 330 MB on disk AND
+rem make the next run skip the download entirely - so the blobs must go too.
+rem A blob is only deleted when its .refs file actually names this model, so
+rem every other model in your cache is left untouched.
+set "N=0"
+if exist "%HUB%\blobs" (
+  for /r "%HUB%\blobs" %%F in (*.refs) do (
+    findstr /m /c:"models--hexgrad--Kokoro-82M" "%%F" >nul 2>&1
+    if not errorlevel 1 (
+      del /q "%%~dpnF" >nul 2>&1
+      del /q "%%F" >nul 2>&1
+      set /a N+=1
+    )
+  )
+)
+echo   [ok] Voice model deleted.  (%N% cached file blocks freed)
 
 :done
 echo.

@@ -72,7 +72,7 @@ echo.
 rem --seed also installs pip, which the language data step below needs.
 "%UV%" venv --seed --python 3.12 "%VENV%"
 if not exist "%PY%" goto fail_engine
-"%UV%" pip install --python "%PY%" -r "%APP_DIR%requirements.txt"
+call :pip_install
 if errorlevel 1 goto fail_engine
 "%PY%" -c "import kokoro, soundfile, gradio" >nul 2>&1
 if errorlevel 1 goto fail_engine
@@ -128,6 +128,23 @@ echo    %~1
 echo ----------------------------------------------------------------
 echo.
 exit /b 0
+
+:pip_install
+rem A big wheel like torch can be locked for a moment by antivirus real-time
+rem scanning, which makes uv's cache rename fail with "Access is denied".
+rem That is transient, so try a few times before giving up. Measured on a real
+rem machine: the first attempt failed on torch, the second attempt succeeded.
+set "TRY=0"
+:try_pip
+set /a TRY+=1
+"%UV%" pip install --python "%PY%" -r "%APP_DIR%requirements.txt"
+if not errorlevel 1 exit /b 0
+if %TRY% GEQ 3 exit /b 1
+echo.
+echo   The download was interrupted. Trying again (%TRY% of 3)...
+echo.
+timeout /t 3 >nul
+goto try_pip
 
 :fail_net
 call :banner "COULD NOT DOWNLOAD THE SETUP TOOL"
