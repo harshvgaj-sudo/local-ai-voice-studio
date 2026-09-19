@@ -156,7 +156,7 @@ needs, and what happens if something is missing.
 REQUIRED:
   - 64-bit Windows 10 (version 1803 or newer) or Windows 11
   - A 64-bit (x86-64) Intel or AMD processor
-  - About 3 GB of free space on C:
+  - About 3 GB of free space on C: (the finished install is about 1.3 GB)
   - About 2 GB of free memory while it is generating
   - Internet for the first setup run only
 

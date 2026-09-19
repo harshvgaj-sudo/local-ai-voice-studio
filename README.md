@@ -17,7 +17,7 @@
 
 ### ➡️ **[Download `Install-Local-AI-Voice.bat`](https://github.com/harshvgaj-sudo/local-ai-voice-studio/releases/latest/download/Install-Local-AI-Voice.bat)**
 
-One file, about 39 KB. Double-click it. That is the whole install.
+One file, about 42 KB. Double-click it. That is the whole install.
 
 Or browse the [latest release](https://github.com/harshvgaj-sudo/local-ai-voice-studio/releases/latest) if you would rather read the notes first.
 
@@ -82,13 +82,26 @@ Kokoro-82M itself ships 54 voices across 8 languages. This app deliberately expo
 
 | | |
 |---|---|
-| **OS** | Windows 10 or Windows 11, 64-bit |
+| **OS** | Windows 10 **version 1803 (2018) or newer**, or Windows 11 — 64-bit |
+| **CPU** | 64-bit (x86-64) Intel or AMD |
 | **RAM** | 8 GB recommended (works on less, but generation slows down) |
-| **Disk** | About 2 GB free |
+| **Disk** | About 3 GB free on `C:` (final footprint after setup is about 1.3 GB) |
 | **GPU** | **Not required.** No NVIDIA, AMD or Intel graphics needed |
 | **Python** | **Not required.** The setup installs its own private copy |
+| **Admin rights** | **Not required.** Nothing is installed system-wide |
 | **Internet** | Needed once, during setup. Never again |
-| **Browser** | Microsoft Edge (already on every Windows PC) or Google Chrome, for the app window |
+| **Browser** | Edge or Chrome for the app window — both are preinstalled on Windows 10/11 |
+
+**Why Windows 10 1803 is the floor:** the installer uses `curl.exe` and `tar.exe`, which
+Microsoft only shipped with Windows starting at build 17063. On anything older the setup
+stops with "could not download the setup tool".
+
+**Does not work on:** 32-bit Windows (the bundled `uv` has no 32-bit Windows build),
+Windows 8.1 or earlier, macOS, or Linux.
+
+**If you have no Edge or Chrome** (Firefox-only setup, or a stripped Windows image), the
+studio still works completely — it just opens in an ordinary browser tab with an address
+bar instead of its own app window.
 
 ---
 
@@ -107,7 +120,7 @@ The setup downloads roughly **1 GB** the first time and nothing after that.
 | Language data (`en_core_web_sm`) | ~15 MB | Reads your text the way a narrator would |
 | **Total** | **~1 GB** | |
 
-The setup deletes its own download cache when it finishes, so it does not leave a second copy of everything on your disk. Final footprint after setup is about 1.5 GB.
+The setup deletes its own download cache when it finishes, so it does not leave a second copy of everything on your disk. Measured final footprint after setup, on a real install: **about 1.3 GB** — roughly 1 GB inside `C:\Users\<you>\LocalVoiceStudio` plus the 316 MB voice model in the Hugging Face cache.
 
 Everything except the voice model lives inside one folder: `C:\Users\<you>\LocalVoiceStudio`. Nothing is installed system-wide, no registry keys are written, and no PATH entries are added.
 
@@ -142,7 +155,7 @@ English only — American and British. The nine voices cover those two accents.
 Because the file is unsigned. Signing certificates cost a few hundred dollars a year, which a free project does not have. The source is right here in this repository if you want to read exactly what it does before running it.
 
 **How do I uninstall it?**
-Run `Uninstall.bat` inside the app folder. It removes the engine and Python (about 1.3 GB) and offers to remove the voice model too. Your generated audio is kept.
+Run `Uninstall.bat` inside the app folder. It removes the engine and Python (about 1 GB) and offers to remove the voice model too (316 MB). Your generated audio is kept.
 
 ---
 
