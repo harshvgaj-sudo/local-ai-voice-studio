@@ -102,17 +102,26 @@ def missing_assets(voices=True):
         snaps = os.path.join(model_dir, "snapshots")
         if not os.path.isdir(snaps):
             continue
-        revs = sorted(os.listdir(snaps))
-        if not revs:
-            continue
-        # Prefer the revision the cache itself says is current.
+
+        # Try "main" first, then EVERY revision folder. Some setups (a manual
+        # copy, an archive tool that drops dotfiles, a future change to the
+        # cache layout) leave refs/main missing while snapshots/ is perfectly
+        # intact. Looking only at refs/main would then report the model as
+        # absent, and the app would go and hit the network on a machine that
+        # is fully provisioned - the exact silent failure this app is built to
+        # avoid. Checking all revision folders costs nothing.
+        refs = []
         try:
             with open(os.path.join(model_dir, "refs", "main"), encoding="utf-8") as fh:
-                pinned = fh.read().strip()
-            if pinned in revs:
-                revs = [pinned] + [r for r in revs if r != pinned]
+                refs = [fh.read().strip()]
         except Exception:
             pass
+
+        revs = [r for r in refs if r]
+        revs += [r for r in sorted(os.listdir(snaps)) if r not in revs]
+        if not revs:
+            continue
+
         best = wanted
         for rev in revs:
             base = os.path.join(snaps, rev)

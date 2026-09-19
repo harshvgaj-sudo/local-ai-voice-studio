@@ -148,6 +148,39 @@ TWO IMPORTANT NOTES ABOUT THE SETUP
     for updates, and not to load a font.
 
 
+WHAT YOUR PC NEEDS  -  THE HONEST LIST
+------------------------------------------------------------------------------
+This is not a "runs on absolutely anything" claim. Here is exactly what it
+needs, and what happens if something is missing.
+
+REQUIRED:
+  - 64-bit Windows 10 (version 1803 or newer) or Windows 11
+  - A 64-bit (x86-64) Intel or AMD processor
+  - About 3 GB of free space on C:
+  - About 2 GB of free memory while it is generating
+  - Internet for the first setup run only
+
+NOT REQUIRED - and this is the whole point of the app:
+  - No graphics card.    Any CPU does the work.
+  - No admin rights.     Nothing is installed into Windows.
+  - No Python.           It brings its own private copy.
+  - No account, no key, no subscription.
+
+WILL NOT WORK ON:
+  - 32-bit Windows.      The setup tool has no 32-bit build available.
+  - Windows 8.1 or older. The installer uses two small programs that
+                         Microsoft only added to Windows 10 in 2018.
+  - Mac or Linux.        This installer is Windows-only.
+
+ONE THING THAT CAN LOOK DIFFERENT
+If your PC has neither Microsoft Edge nor Google Chrome - for example if you
+use Firefox only - the studio still works perfectly, but it opens in an
+ordinary browser tab with an address bar instead of its own window. Nothing
+is broken; it just looks slightly less like an installed program.
+
+If you have any problem at all, tell me in the comments. I read them.
+
+
 LICENCE / CAN I USE THE OUTPUT?
 ------------------------------------------------------------------------------
 The Kokoro-82M model is released under the Apache 2.0 licence, which
