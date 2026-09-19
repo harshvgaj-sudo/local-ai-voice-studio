@@ -15,9 +15,11 @@
 
 ## Download
 
-### ➡️ **[Download the one-click installer](https://github.com/harshvgaj-sudo/local-ai-voice-studio/releases/latest)**
+### ➡️ **[Download `Install-Local-AI-Voice.bat`](https://github.com/harshvgaj-sudo/local-ai-voice-studio/releases/latest/download/Install-Local-AI-Voice.bat)**
 
-One file. Double-click it. That is the whole install.
+One file, about 39 KB. Double-click it. That is the whole install.
+
+Or browse the [latest release](https://github.com/harshvgaj-sudo/local-ai-voice-studio/releases/latest) if you would rather read the notes first.
 
 > **Windows will warn you.** The file is not code-signed (code signing costs money every year, and this project is free). Your browser may say *"This file isn't commonly downloaded"* and SmartScreen may say *"Windows protected your PC"*. Click **Keep** and **More info → Run anyway**. This is normal for any free, unsigned tool.
 
@@ -25,8 +27,8 @@ One file. Double-click it. That is the whole install.
 
 ## How to use it
 
-1. **Download** `Install Local AI Voice.bat` from the link above.
-2. **Double-click it.** A black window appears and sets everything up by itself. This downloads about 1.5 GB and takes roughly 5–15 minutes depending on your internet speed. You do not need Python, and you do not need to install anything else.
+1. **Download** `Install-Local-AI-Voice.bat` from the link above.
+2. **Double-click it.** A black window appears and sets everything up by itself. This downloads about 1 GB and takes roughly 5–15 minutes depending on your internet speed. You do not need Python, and you do not need to install anything else.
 3. **Wait for `READY TO RECORD`.** The studio window opens. Paste your script, pick a voice, press **GENERATE VOICE**. Your WAV file lands in the `output` folder next to the app.
 
 After the first time, you never repeat the setup. Just double-click the **Local AI Voice Studio** desktop shortcut and the app opens in about a minute.
@@ -92,18 +94,20 @@ Kokoro-82M itself ships 54 voices across 8 languages. This app deliberately expo
 
 ## What actually gets downloaded
 
-The setup downloads roughly **1.5 GB** the first time and nothing after that.
+The setup downloads roughly **1 GB** the first time and nothing after that.
 
 | Component | Approx. size | What it is |
 |---|---|---|
 | Voice model (`kokoro-v1_0.pth`) | ~330 MB | The actual AI voice — downloaded once, yours forever |
-| PyTorch (CPU build) | ~200 MB | The maths engine that runs the model |
-| Gradio + web stack | ~150 MB | Draws the interface |
-| Transformers, spaCy, misaki, numpy and friends | ~400 MB | Text processing — turns your words into sounds |
-| Python 3.12 (private copy) | ~150 MB | Installed inside the app folder, never system-wide |
-| `uv` + build tools | ~100 MB | The installer's own tooling |
+| PyTorch (CPU build) | ~120 MB | The maths engine that runs the model |
+| Gradio + web stack | ~90 MB | Draws the interface |
+| Transformers, spaCy, misaki, numpy and friends | ~250 MB | Text processing — turns your words into sounds |
+| Python 3.12 (private copy) | ~120 MB | Installed inside the app folder, never system-wide |
+| `uv` + build tools | ~30 MB | The installer's own tooling |
 | Language data (`en_core_web_sm`) | ~15 MB | Reads your text the way a narrator would |
-| **Total** | **~1.5 GB** | |
+| **Total** | **~1 GB** | |
+
+The setup deletes its own download cache when it finishes, so it does not leave a second copy of everything on your disk. Final footprint after setup is about 1.5 GB.
 
 Everything except the voice model lives inside one folder: `C:\Users\<you>\LocalVoiceStudio`. Nothing is installed system-wide, no registry keys are written, and no PATH entries are added.
 
@@ -123,10 +127,10 @@ Yes. The app is MIT licensed and the voice model is Apache-2.0. There is no paid
 The model weights are released under Apache-2.0, which permits commercial use. Do check the licence yourself for your own situation; this is a description of the licence, not legal advice.
 
 **Does my text get sent anywhere?**
-No. The app makes no outbound requests while you use it. You can verify that by disconnecting from the internet and using it.
+No. Your script never leaves your PC — it is turned into audio in local memory. The app also makes **no outbound requests at all** while you use it: it sets `HF_HUB_OFFLINE=1` so the model library never phones home to check for updates, and it uses system fonts instead of fetching a web font. The honest test is to disconnect from the internet and use it — that is exactly how it was verified.
 
 **Why does the first launch take about a minute?**
-It loads a 330 MB neural network into memory. That is a real model doing real work, not a web page.
+It loads a 312 MB neural network into memory. That is a real model doing real work, not a web page.
 
 **How long a script can it handle?**
 There is no built-in limit. Scripts are split at paragraph and sentence boundaries and rejoined with natural pauses, so a 5,000-word script works. It just takes longer and produces a bigger WAV.
@@ -138,14 +142,14 @@ English only — American and British. The nine voices cover those two accents.
 Because the file is unsigned. Signing certificates cost a few hundred dollars a year, which a free project does not have. The source is right here in this repository if you want to read exactly what it does before running it.
 
 **How do I uninstall it?**
-Run `Uninstall.bat` inside the app folder. It removes the engine and Python (about 2 GB) and offers to remove the voice model too. Your generated audio is kept.
+Run `Uninstall.bat` inside the app folder. It removes the engine and Python (about 1.3 GB) and offers to remove the voice model too. Your generated audio is kept.
 
 ---
 
 ## How it works
 
 ```
-Install Local AI Voice.bat   (one file, self-contained)
+Install-Local-AI-Voice.bat   (one file, self-contained)
         |
         |  decodes an embedded ZIP to %USERPROFILE%\LocalVoiceStudio
         v

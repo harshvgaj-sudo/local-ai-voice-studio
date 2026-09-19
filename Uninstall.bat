@@ -8,7 +8,7 @@ echo ================================================================
 echo    UNINSTALL
 echo ================================================================
 echo.
-echo   This removes the engine and Python (about 2 GB) from this folder.
+echo   This removes the engine and Python (about 1.1 GB) from this folder.
 echo.
 echo   Your generated voice files in the "output" folder are KEPT.
 echo.

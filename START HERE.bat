@@ -33,7 +33,7 @@ echo.
 echo   You do NOT need Python. You do NOT need to install anything
 echo   yourself. This file does all of it for you.
 echo.
-echo   It downloads about 1.5 GB and takes roughly 5 to 15 minutes
+echo   It downloads about 1 GB and takes roughly 5 to 15 minutes
 echo   depending on your internet speed.
 echo.
 echo   Do NOT close this window until it says READY TO RECORD.

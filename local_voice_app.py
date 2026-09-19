@@ -34,6 +34,13 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning, module="torch")
 warnings.filterwarnings("ignore", message=".*unauthenticated requests.*")
 warnings.filterwarnings("ignore", message=".*dropout option adds dropout.*")
+# Passing theme= to gr.Blocks is deprecated in this Gradio version, and the
+# replacement it points at - launch(theme=...) - does not exist in 5.50. We
+# have to use the deprecated form to drop the Google font request, so silence
+# just this one message. It would otherwise print into the terminal on camera.
+warnings.filterwarnings(
+    "ignore", message=r"The 'theme' parameter in the Blocks constructor"
+)
 for _noisy in ("huggingface_hub", "urllib3", "filelock", "httpx"):
     logging.getLogger(_noisy).setLevel(logging.ERROR)
 
@@ -68,17 +75,80 @@ def port_in_use(port):
         return s.connect_ex(("127.0.0.1", port)) == 0
 
 
-def model_is_cached():
-    """True if the model + voices were already fetched by the setup file."""
-    home = os.path.expanduser("~")
-    roots = [os.path.join(home, ".cache", "huggingface", "hub")]
+def _hub_roots():
+    """Every place this machine could be keeping the Hugging Face cache."""
+    roots = [os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "hub")]
     hf_home = os.environ.get("HF_HOME")
     if hf_home:
         roots.append(os.path.join(hf_home, "hub"))
-    for root in roots:
-        if os.path.isdir(os.path.join(root, "models--hexgrad--Kokoro-82M")):
-            return True
-    return False
+    return roots
+
+
+def missing_assets(voices=True):
+    """Which model / voice files are NOT already on this PC.
+
+    An empty list means the studio can run with the network switched off.
+    The voice packs are checked as well as the weights, because a machine that
+    has the model but is missing one voice would still reach for the internet
+    the moment somebody picks that voice - which is exactly the on-camera
+    failure worth ruling out.
+    """
+    wanted = ["config.json", "kokoro-v1_0.pth"]
+    if voices:
+        wanted += ["voices/%s.pt" % v for v in VOICES.values()]
+
+    for root in _hub_roots():
+        model_dir = os.path.join(root, "models--hexgrad--Kokoro-82M")
+        snaps = os.path.join(model_dir, "snapshots")
+        if not os.path.isdir(snaps):
+            continue
+        revs = sorted(os.listdir(snaps))
+        if not revs:
+            continue
+        # Prefer the revision the cache itself says is current.
+        try:
+            with open(os.path.join(model_dir, "refs", "main"), encoding="utf-8") as fh:
+                pinned = fh.read().strip()
+            if pinned in revs:
+                revs = [pinned] + [r for r in revs if r != pinned]
+        except Exception:
+            pass
+        best = wanted
+        for rev in revs:
+            base = os.path.join(snaps, rev)
+            gone = [w for w in wanted if not os.path.exists(os.path.join(base, w))]
+            if len(gone) < len(best):
+                best = gone
+            if not best:
+                break
+        return best
+    return wanted
+
+
+def model_is_cached():
+    """True if the model weights themselves are on this PC.
+
+    Deliberately ignores the voice packs: one missing voice must not stop
+    somebody generating with a voice that IS present. The per-voice check
+    happens when a voice is actually used.
+    """
+    return not missing_assets(voices=False)
+
+
+def voice_is_cached(voice):
+    """True if one specific voice pack is already on this PC."""
+    return ("voices/%s.pt" % voice) not in missing_assets()
+
+
+# The setup file already stored the model and all nine voices. When they are
+# all present, tell huggingface_hub to work purely from disk. Without this it
+# still sends an update check to huggingface.co on every launch, which stalls
+# the app when the PC is genuinely offline - and quietly contradicts the
+# "100% offline" promise on screen. If anything is missing we stay online, so
+# the normal first-run download path still works.
+MISSING_ASSETS = missing_assets()
+if not MISSING_ASSETS:
+    os.environ["HF_HUB_OFFLINE"] = "1"
 
 
 # ------------------------------------------------------------------ text prep
@@ -167,10 +237,30 @@ def build_audio(pipeline, text, voice, speed):
 
 
 # ------------------------------------------------------------------------ UI
+def offline_theme():
+    """The normal Gradio look, but with fonts Windows already has.
+
+    The stock theme asks fonts.googleapis.com for 'Source Sans Pro'. That is a
+    real outbound request on every launch, which is wrong for an app that
+    advertises itself as 100% offline - and on a disconnected PC it is a
+    request that can only fail. Passing plain Font objects makes Gradio emit
+    no font stylesheet at all, so the page renders from local fonts only.
+
+    Measured on gradio 5.50.0: the stock theme emits one external font URL,
+    this one emits none.
+    """
+    import gradio as gr
+    return gr.themes.Default(
+        font=[gr.themes.Font("Segoe UI"), gr.themes.Font("Arial"),
+              gr.themes.Font("sans-serif")],
+        font_mono=[gr.themes.Font("Consolas"), gr.themes.Font("monospace")],
+    )
+
+
 def build_ui():
     import gradio as gr
 
-    with gr.Blocks(title="Local AI Voice Studio") as demo:
+    with gr.Blocks(title="Local AI Voice Studio", theme=offline_theme()) as demo:
         gr.Markdown(
             "# Local AI Voice Studio\n"
             "**Runs 100% on this PC. No internet. No API key. No GPU.**  \n"
@@ -241,6 +331,14 @@ def generate_speech(text, voice_label, speed):
         )
 
     voice = VOICES.get(voice_label, "af_heart")
+
+    if not voice_is_cached(voice):
+        raise gr.Error(
+            "The '%s' voice has not been downloaded yet. Connect to the "
+            "internet once and run the setup file again - it will fetch just "
+            "this voice, and after that it works offline too." % voice
+        )
+
     pipeline = PIPELINES["b" if voice.startswith("b") else "a"]
 
     started = time.time()
@@ -456,10 +554,16 @@ def main():
         open_app_window("http://127.0.0.1:%d" % PORT)
         return 0
 
-    if not model_is_cached():
+    if MISSING_ASSETS:
         line("")
         line("  NOTE: this is the first run, so the voice model downloads now")
         line("  (about 330 MB, one time only). After this it is fully offline.")
+        line("")
+    else:
+        line("")
+        line("  Offline mode: ON. The model and all %d voices are already on"
+             % len(VOICES))
+        line("  this PC, so nothing here will touch the internet.")
         line("")
 
     line("")

@@ -41,7 +41,7 @@ icon does.
 
 The FIRST time you ever run it, it sets everything up by itself. You do not
 need Python, and you do not need to type any commands. It downloads about
-1.5 GB and takes roughly 5 to 15 minutes, and finishes by saying
+1 GB and takes roughly 5 to 15 minutes, and finishes by saying
 READY TO RECORD. Every time after that, it simply opens the studio.
 
 
@@ -100,7 +100,7 @@ Two things worth knowing:
 WHERE THINGS LIVE ON YOUR DISK
 ------------------------------------------------------------------------------
 Inside this folder:
-   env\            the Python environment (about 2 GB) - safe to delete
+   env\            the Python environment (about 1.1 GB) - safe to delete
    python\         Python 3.12 itself - safe to delete
    uv-cache\       leftover download cache, removed automatically at the end
 
@@ -141,6 +141,11 @@ TWO IMPORTANT NOTES ABOUT THE SETUP
     The setup downloads Python, the libraries, and the voice model. Once
     it says READY TO RECORD, you can switch on Airplane Mode and it will
     keep working forever.
+
+    The studio tells you so when it starts - it prints "Offline mode: ON"
+    and confirms the model and all nine voices are already on your PC.
+    From that point it makes no internet requests at all: not to check
+    for updates, and not to load a font.
 
 
 LICENCE / CAN I USE THE OUTPUT?

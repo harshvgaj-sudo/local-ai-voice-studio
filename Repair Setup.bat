@@ -11,7 +11,7 @@ echo.
 echo   Use this if the studio ever stops working, or if you saw an
 echo   error while it was setting up.
 echo.
-echo   It deletes the downloaded setup (about 2 GB) and installs it
+echo   It deletes the downloaded setup (about 1.1 GB) and installs it
 echo   again from scratch. Takes 5 to 15 minutes.
 echo.
 echo   Your generated voice files in the "output" folder are KEPT.
