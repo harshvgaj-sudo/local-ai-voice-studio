@@ -1,0 +1,149 @@
+==============================================================================
+  LOCAL AI VOICE STUDIO  -  READ ME FIRST
+  A hyper-realistic AI voice generator that runs entirely on your own PC.
+  No internet. No account. No API key. No GPU. No monthly fee.
+==============================================================================
+
+WHAT THIS FOLDER GIVES YOU
+------------------------------------------------------------------------------
+A private voice studio that opens in your browser. You type a script, pick a
+voice, and it produces a .wav file you can drop straight into CapCut or
+Premiere Pro. It sounds like the expensive cloud services, but nothing ever
+leaves your computer.
+
+Under the hood it uses Kokoro-82M, a free open-source voice model (Apache 2.0
+licence) that is about 330 MB. That is why it can run on a normal laptop with
+no graphics card.
+
+
+HOW TO START  -  FROM NOW ON THERE IS ONLY ONE STEP
+------------------------------------------------------------------------------
+If you ran "Install Local AI Voice.bat", the hard part is already done. It set
+everything up and put an icon on your desktop.
+
+    Double-click the desktop icon:   Local AI Voice Studio
+
+    It takes about 40 to 60 seconds to open, because it loads a real AI model
+    into memory. A black window shows you each step as it goes, so you can see
+    it is working. It is not frozen - give it a moment. The studio then opens
+    in your browser.
+
+    Or press the Windows key, type "voice", and hit Enter. Same thing.
+
+IF YOU EVER NEED TO START IT BY HAND
+------------------------------------------------------------------------------
+Double-click  START HERE.bat  in this folder. That is exactly what the desktop
+icon does.
+
+The FIRST time you ever run it, it sets everything up by itself. You do not
+need Python, and you do not need to type any commands. It downloads about
+1.5 GB and takes roughly 5 to 15 minutes, and finishes by saying
+READY TO RECORD. Every time after that, it simply opens the studio.
+
+
+WHAT EACH FILE DOES
+------------------------------------------------------------------------------
+START HERE.bat   The one file you need. Sets up on first run,
+                           then launches the studio.
+
+Make Desktop Shortcut.bat  Re-creates the desktop and Start menu icons. You
+                           only need this if the icon ever goes missing -
+                           the installer already made them for you.
+
+Repair Setup.bat           If anything ever breaks, this wipes the setup
+                           and installs it again from scratch.
+
+Uninstall.bat              Removes the engine and Python from this folder.
+                           Your generated .wav files are kept.
+
+local_voice_app.py         The studio itself. You never need to open this.
+
+requirements.txt           The exact list of libraries that get installed.
+
+voice.ico                  The icon used for the shortcuts.
+
+output\                    Every voiceover you generate lands here.
+
+
+USING THE STUDIO
+------------------------------------------------------------------------------
+1.  Paste or type your script in the big box on the left.
+2.  Pick a voice from the dropdown.
+3.  Press GENERATE VOICE (OFFLINE).
+4.  It plays the result and saves a .wav file into the output folder.
+
+The Benchmark box shows exactly how fast it was: for example
+"9.4s of audio generated in 2.1s  |  4.5x real time". That number is worth
+watching - it is the proof that this is running on your own CPU.
+
+Good voices to start with:
+   am_adam      deep US male, great for tech reviews and faceless videos
+   af_heart     warm US female, great for documentary narration
+   bm_george    classic British male narrator
+   bf_emma      crisp British female newsreader
+
+There are 54 voices in the full model, but this app ships with the 9 best
+English ones so the download stays small. The model is multilingual
+(Japanese, Mandarin, French, Spanish, Hindi and more) if you ever want them.
+
+Two things worth knowing:
+   - The output is 24 kHz mono. That is what Kokoro produces, and it is
+     perfectly fine for YouTube. No need to convert it.
+   - Long scripts are split into chunks automatically and joined with a
+     short pause, so a 5-minute script works just as well as one sentence.
+
+
+WHERE THINGS LIVE ON YOUR DISK
+------------------------------------------------------------------------------
+Inside this folder:
+   env\            the Python environment (about 2 GB) - safe to delete
+   python\         Python 3.12 itself - safe to delete
+   uv-cache\       leftover download cache, removed automatically at the end
+
+Stored by Windows:
+   %USERPROFILE%\.cache\huggingface\hub\models--hexgrad--Kokoro-82M
+   This is the voice model (about 330 MB). Uninstall.bat can remove it.
+
+
+IF SOMETHING GOES WRONG
+------------------------------------------------------------------------------
+"The studio is ALREADY RUNNING"
+   You double-clicked twice. It just opened the existing one in your
+   browser. Close the extra black window.
+
+The setup stopped halfway
+   Double-click START HERE.bat again. It picks up where it left
+   off. If that does not work, use Repair Setup.bat.
+
+Nothing happens when I double-click
+   Right-click the .bat file, choose "Run as administrator".
+
+The browser does not open
+   Open it yourself and go to:   http://127.0.0.1:7860
+
+
+TWO IMPORTANT NOTES ABOUT THE SETUP
+------------------------------------------------------------------------------
+1.  Python 3.12 is required, specifically.
+    This is not fussiness. kokoro 0.9.x refuses to install on Python 3.13
+    or newer, and if you force it, pip quietly falls back to a broken
+    ancient version that then tries to compile numpy from source and fails
+    with a wall of red text. That is why this setup always uses its own
+    private Python 3.12 and never touches whatever is already on your PC.
+
+2.  The first run needs internet. Everything after that does not.
+    The setup downloads Python, the libraries, and the voice model. Once
+    it says READY TO RECORD, you can switch on Airplane Mode and it will
+    keep working forever.
+
+
+LICENCE / CAN I USE THE OUTPUT?
+------------------------------------------------------------------------------
+The Kokoro-82M model is released under the Apache 2.0 licence, which
+permits commercial use. Voiceovers you generate here are yours to publish
+and monetise. No attribution is required, and no cloud service can claim
+rights over your scripts, because they never left your machine.
+
+==============================================================================
+  Tech Tips Dhanwala MH  -  verified local AI setups, no cloud, no fees
+==============================================================================

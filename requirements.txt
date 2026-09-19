@@ -1,0 +1,14 @@
+# ==============================================================================
+#  Local AI Voice Studio - verified working set
+#
+#  IMPORTANT: these only install correctly on Python 3.10 - 3.12.
+#  kokoro 0.9.x declares "Requires-Python: <3.13". If you install it on
+#  Python 3.13 or newer, pip silently falls back to an ancient version
+#  that tries to compile numpy from source and fails.
+#
+#  The setup file handles this for you - it always uses Python 3.12.
+# ==============================================================================
+
+kokoro==0.9.4
+soundfile>=0.12.1
+gradio>=5.0,<6

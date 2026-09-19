@@ -1,0 +1,16 @@
+# Batch files MUST keep CRLF line endings. cmd.exe can mis-handle LF-only
+# batch files, especially around labels and goto, and the whole install flow
+# is built out of those. Forcing it here means a clone on any platform still
+# produces a runnable installer.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Windows icon
+*.ico binary
+
+# Everything else: normalise to LF in the repository
+*.py   text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.svg  text eol=lf
+*.json text eol=lf

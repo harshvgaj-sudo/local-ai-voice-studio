@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+#  Runtime artefacts the app creates for itself. Never commit these.
+# ---------------------------------------------------------------------------
+
+# The browser profile used for the app window (about 50 MB, 500 files)
+app-window/
+
+# Generated voice files
+output/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# ---------------------------------------------------------------------------
+#  Created by the one-time setup inside the app folder. About 2 GB.
+#  These must never be committed - they are rebuilt by START HERE.bat.
+# ---------------------------------------------------------------------------
+env/
+python/
+uv-cache/
+uv.exe
+uvx.exe
+uvw.exe
+uv-download.zip
+env/.ready
+
+# ---------------------------------------------------------------------------
+#  Build output
+# ---------------------------------------------------------------------------
+Release/
+*.zip
+
+# ---------------------------------------------------------------------------
+#  Editor and OS noise
+# ---------------------------------------------------------------------------
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
