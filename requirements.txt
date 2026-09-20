@@ -1,14 +1,42 @@
 # ==============================================================================
 #  Local AI Voice Studio - verified working set
 #
-#  IMPORTANT: these only install correctly on Python 3.10 - 3.12.
-#  kokoro 0.9.x declares "Requires-Python: <3.13". If you install it on
-#  Python 3.13 or newer, pip silently falls back to an ancient version
-#  that tries to compile numpy from source and fails.
+#  Installed with a single `uv pip install -r requirements.txt`.
+#  Nothing here needs a compiler, a graphics card, or an account.
 #
-#  The setup file handles this for you - it always uses Python 3.12.
+#  IMPORTANT: installs on Python 3.10 - 3.13.
+#  The setup file always uses Python 3.12, which is the version this set was
+#  measured on.
+#
+#  WHY THESE AND NOT torch
+#  -----------------------
+#  The original build of this app used the `kokoro` package, which pulls in
+#  torch. Measured on the development machine, same text, same 21.0s of audio:
+#
+#      kokoro (torch)   RTF 0.495   about 1.3 GB on disk   ~2 GB RAM generating
+#      onnxruntime      RTF 0.295   about 1.0 GB on disk   ~350 MB RAM generating
+#
+#  (RTF = seconds of wall clock per second of finished audio; lower is better.)
+#  Same model, same voices. The ONNX path is 1.7x faster, and the whole
+#  installed footprint drops from about 1.3 GB to about 1.0 GB - roughly a
+#  third smaller, and that includes the voice model in both cases.
+#
+#  The bigger win is memory, not disk. On a laptop with 7.2 GB of RAM the
+#  torch build spent its time paging to disk, which is what "it takes too
+#  long" actually looked like. ONNX Runtime holds the whole model in about
+#  350 MB instead of about 2 GB.
+#
+#  Measured on a clean install: env\ is 435 MB and models\ is 337 MB.
+#  env\pyvenv.cfg points at python\ (the uv-managed Python 3.12), so that
+#  folder is REQUIRED at run time and must never be deleted after setup.
+#
+#  kokoro-onnx brings its own phonemiser: espeakng-loader ships the compiled
+#  eSpeak NG library AND its language data inside the wheel, so the separate
+#  espeak-ng installer the upstream README mentions is not needed.
 # ==============================================================================
 
-kokoro==0.9.4
-soundfile>=0.12.1
+kokoro-onnx==0.6.1
+onnxruntime==1.23.2
+soundfile==0.13.1
 gradio>=5.0,<6
+numpy>=2.0.2

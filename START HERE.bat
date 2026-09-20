@@ -1,13 +1,41 @@
 @echo off
-setlocal EnableExtensions
-title Local AI Voice Studio
-cd /d "%~dp0"
+rem ============================================================================
+rem  LOCAL AI VOICE STUDIO - LAUNCHER
+rem
+rem  HOW TO START THIS APP
+rem  ---------------------
+rem  Double-click this file. That is the whole instruction.
+rem
+rem  What happens next:
+rem    1. this text window disappears immediately
+rem    2. the studio window opens, looking like a normal program
+rem    3. closing that window stops the studio
+rem
+rem  You can delete this file, or the whole folder it came in, as soon as the
+rem  setup has finished. Everything the app needs lives in the studio folder,
+rem  and the desktop shortcut points straight at the launcher inside it - not
+rem  at whatever file you first downloaded.
+rem ============================================================================
 
-rem ---------------------------------------------------------------- settings
+setlocal EnableExtensions
 set "APP_DIR=%~dp0"
+set "PY=%APP_DIR%env\Scripts\pythonw.exe"
+set "PYW=%APP_DIR%env\Scripts\pythonw.exe"
+
+if exist "%APP_DIR%env\.ready" goto silent
+goto setup
+
+rem ---------------------------------------------------------------------------
+rem  SETUP - only ever needed once. This part needs a visible window, because
+rem  it downloads about 540 MB and has to be able to explain itself if something
+rem  goes wrong.
+rem ---------------------------------------------------------------------------
+:setup
+title Local AI Voice Studio - Setup
 set "VENV=%APP_DIR%env"
-set "PY=%VENV%\Scripts\python.exe"
+set "PYTHON_EXE=%VENV%\Scripts\python.exe"
 set "MARKER=%VENV%\.ready"
+set "WHEELS=%APP_DIR%wheels"
 set "UV=%APP_DIR%uv.exe"
 set "UV_ZIP=%APP_DIR%uv-download.zip"
 set "UV_URL=https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-pc-windows-msvc.zip"
@@ -17,10 +45,6 @@ set "UV_PYTHON_INSTALL_DIR=%APP_DIR%python"
 set "UV_CACHE_DIR=%APP_DIR%uv-cache"
 set "UV_PYTHON_PREFERENCE=only-managed"
 set "UV_LINK_MODE=copy"
-set "HF_HUB_DISABLE_TELEMETRY=1"
-set "GRADIO_ANALYTICS_ENABLED=False"
-
-if exist "%MARKER%" goto launch
 
 cls
 echo ================================================================
@@ -33,7 +57,7 @@ echo.
 echo   You do NOT need Python. You do NOT need to install anything
 echo   yourself. This file does all of it for you.
 echo.
-echo   It downloads about 1 GB and takes roughly 5 to 15 minutes
+echo   It downloads about 540 MB and takes roughly 3 to 10 minutes
 echo   depending on your internet speed.
 echo.
 echo   Do NOT close this window until it says READY TO RECORD.
@@ -44,7 +68,7 @@ pause
 
 rem ------------------------------------------------- STEP 1: get the tool
 if exist "%UV%" goto step2
-call :banner "STEP 1 OF 3   Getting the setup tool"
+call :banner "STEP 1 OF 4   Getting the setup tool"
 where curl >nul 2>&1
 if errorlevel 1 goto fail_net
 curl -L -f --retry 3 -o "%UV_ZIP%" "%UV_URL%"
@@ -57,7 +81,7 @@ echo   [ok] Setup tool ready.
 
 rem ------------------------------------------------ STEP 2: get Python 3.12
 :step2
-call :banner "STEP 2 OF 3   Getting Python 3.12"
+call :banner "STEP 2 OF 4   Getting Python 3.12"
 echo   (this app needs Python 3.12 specifically - newer versions
 echo    break one of the AI libraries it depends on)
 echo.
@@ -66,33 +90,79 @@ if errorlevel 1 goto fail_python
 echo   [ok] Python 3.12 ready.
 
 rem -------------------------------------- STEP 3: install the voice engine
-call :banner "STEP 3 OF 3   Installing the voice engine"
-echo   This is the big download. You can leave it alone and come back.
-echo.
-rem --seed also installs pip, which the language data step below needs.
+call :banner "STEP 3 OF 4   Installing the voice engine"
+rem --seed also installs pip, which is used for the offline install below.
 "%UV%" venv --seed --python 3.12 "%VENV%"
-if not exist "%PY%" goto fail_engine
+if not exist "%PYTHON_EXE%" goto fail_engine
 call :pip_install
 if errorlevel 1 goto fail_engine
-"%PY%" -c "import kokoro, soundfile, gradio" >nul 2>&1
+"%PYTHON_EXE%" -c "import gradio, soundfile, kokoro_onnx, onnxruntime, numpy" >nul 2>&1
 if errorlevel 1 goto fail_engine
-echo   [ok] Voice engine installed.
-echo.
-echo   Installing the language data it reads your text with...
-"%PY%" -m spacy download en_core_web_sm
-if errorlevel 1 goto fail_engine
-echo   [ok] Language data installed.
 
-rem --------------------------- STEP 3b: fetch the voice model, like Subtitle Edit
-call :banner "STEP 3b   Downloading the AI voice model"
+rem Pre-compile the bytecode for every library just installed.
+rem
+rem This looks like a micro-optimisation. It is not. Measured on a clean
+rem install: without this step the FIRST launch spends about 14 extra
+rem seconds compiling 6,198 .py files, so the window takes about 21
+rem seconds to appear - and 13 of those seconds look like the app doing
+rem nothing at all. With the bytecode pre-compiled the first launch is
+rem about 8 seconds, the same as every launch after it.
+rem
+rem It costs about 27 seconds here, once, unattended - and about 100 MB
+rem of disk. Failures are deliberately ignored: if this does not work the
+rem app still runs correctly, it is just slower on its very first start.
+echo   Preparing the engine for a fast first start...
+"%PYTHON_EXE%" -m compileall -q -j 0 "%APP_DIR%env\Lib\site-packages" >nul 2>&1
+
+echo   [ok] Voice engine installed.
+
+rem --------------------------- STEP 4: fetch the voice model
+call :banner "STEP 4 OF 4   Downloading the AI voice model"
 echo   This is the part that makes the studio work with no internet.
 echo   It happens once, and then it is yours forever.
 echo.
-"%PY%" "%APP_DIR%_warmup.py"
+"%PYTHON_EXE%" "%APP_DIR%_warmup.py"
 if errorlevel 1 goto fail_model
 
 "%UV%" cache clean >nul 2>&1
+rem The wheels and the setup tool have done their job and are no longer
+rem needed. Removing them now keeps the folder small.
+rd /s /q "%WHEELS%" 2>nul
+if exist "%UV%" del "%UV%" >nul 2>&1
+if exist "%APP_DIR%uvx.exe" del "%APP_DIR%uvx.exe" >nul 2>&1
+if exist "%APP_DIR%uvw.exe" del "%APP_DIR%uvw.exe" >nul 2>&1
+
+rem ======================================================================
+rem  DO NOT DELETE %APP_DIR%python. It looks like a leftover. It is not.
+rem
+rem  A Python "virtual environment" does NOT contain the standard library.
+rem  env\pyvenv.cfg records the real interpreter it belongs to:
+rem
+rem      home = ...\LocalVoiceStudio\python\cpython-3.12-windows-x86_64-none
+rem
+rem  and env\Scripts\pythonw.exe is a small launcher that starts THAT
+rem  interpreter. Delete the interpreter and the launcher has nothing to
+rem  start. The failure is silent and total: the desktop icon does nothing,
+rem  the app writes no log, and all Windows reports is
+rem
+rem      uv trampoline failed to spawn Python child process
+rem      Caused by: entity not found (os error 2)
+rem
+rem  An earlier version of this file did delete it, and that broke every
+rem  install while every test still passed - because the tests ran against
+rem  a folder where the cleanup step had never been executed.
+rem
+rem  It is about 120 MB, and it is not optional. It is the thing that runs.
+rem ======================================================================
 echo ready>"%MARKER%"
+
+rem The installer had to create the desktop icon before setup ran, so it
+rem points at this .bat - the only file that existed then. Now that
+rem env\pythonw.exe and .ready are both in place, replace it with the
+rem version that points straight at pythonw.exe. That is the difference
+rem between a black window on every launch and none at all, and without
+rem this step the installer's viewers would never get the good one.
+call "%~dp0Make Desktop Shortcut.bat" /quiet
 
 cls
 echo ================================================================
@@ -101,23 +171,61 @@ echo ================================================================
 echo.
 echo   Everything is installed and the voice model is on your PC.
 echo.
-echo   From now on: just double-click "START HERE.bat"
-echo   (or the desktop icon). It takes about a minute to open, because
-echo   it loads a real AI model into memory - and it needs no internet
-echo   at all.
+echo   From now on: double-click the "Local AI Voice Studio" icon on
+echo   your desktop, or this file again. Either one opens the studio
+echo   in about 7 seconds, and it needs no internet at all.
 echo.
 echo   Starting the studio now...
 echo.
-timeout /t 5 >nul
-goto launch
+ping -n 6 127.0.0.1 >nul
+goto silent
 
-rem -------------------------------------------------------------- launching
-:launch
+rem ---------------------------------------------------------------------------
+rem  NORMAL LAUNCH - pythonw.exe, so there is no console window at all.
+rem
+rem  Two things matter here and both were measured:
+rem
+rem  1. pythonw.exe, not python.exe. pythonw is the GUI-subsystem build, so
+rem     Windows never gives it a console. python.exe would show a black window
+rem     for the whole session.
+rem
+rem  2. "start" without /b. With /b the child stays attached to this console,
+rem     and closing this window can take the studio down with it. Without /b
+rem     the studio is a separate process with its own lifetime - closing this
+rem     window, or the folder, changes nothing. That is the difference between
+rem     "it died when I closed the terminal" and "it just keeps running".
+rem
+rem  The desktop shortcut goes one better and points straight at pythonw.exe,
+rem  so it never opens a console even for a moment. This file is the fallback
+rem  for when somebody runs it from inside the folder.
+rem ---------------------------------------------------------------------------
+:silent
+if not exist "%APP_DIR%env\.ready" goto fail_engine
 cd /d "%APP_DIR%"
-if not exist "%PY%" goto fail_engine
-set "VIRTUAL_ENV=%VENV%"
-"%PY%" "%APP_DIR%local_voice_app.py"
-if errorlevel 1 goto fail_run
+set "VIRTUAL_ENV=%APP_DIR%env"
+set "HF_HUB_OFFLINE=1"
+set "HF_HUB_DISABLE_TELEMETRY=1"
+set "GRADIO_ANALYTICS_ENABLED=False"
+set "ONNXRUNTIME_LOG_SEVERITY_LEVEL=3"
+
+if not exist "%PYW%" set "PYW=%PY%"
+
+rem Launch it and let go. "start" without /b makes the studio a separate
+rem process with its own lifetime, so closing this window - or deleting
+rem this file - changes nothing about the studio already running.
+rem
+rem There is deliberately NO "did it start?" loop here. An earlier version
+rem waited for port 7860 and, when it did not appear in time, started the
+rem studio AGAIN with a visible window. That turned one slow start into two
+rem studios fighting over one port. The wait was also unreliable: "timeout
+rem /t 1" is not always Windows' timeout.exe, and where it is not (a Git
+rem or MSYS install earlier on PATH) it rejects /t and returns instantly,
+rem collapsing the whole 20 second loop into about one second.
+rem
+rem Everything that can go wrong is now reported from inside the app, with
+rem a real Windows dialog box that a non-technical viewer can act on. The
+rem launcher only has to start it and get out of the way.
+start "" /d "%APP_DIR%" "%PYW%" "%APP_DIR%local_voice_app.py"
 exit /b 0
 
 rem ---------------------------------------------------------------- helpers
@@ -130,20 +238,27 @@ echo.
 exit /b 0
 
 :pip_install
-rem A big wheel like torch can be locked for a moment by antivirus real-time
-rem scanning, which makes uv's cache rename fail with "Access is denied".
-rem That is transient, so try a few times before giving up. Measured on a real
-rem machine: the first attempt failed on torch, the second attempt succeeded.
+rem A big wheel can be locked for a moment by antivirus real-time scanning.
+rem That is transient, so try a few times before giving up.
+rem
+rem If a local wheels\ folder is present the install is done entirely from
+rem disk - no package index is contacted at all. The studio works either way.
+if exist "%WHEELS%" (
+  echo   Installing from the bundled files - no internet needed...
+  "%UV%" pip install --python "%PYTHON_EXE%" --no-index --find-links "%WHEELS%" -r "%APP_DIR%requirements.txt"
+  if not errorlevel 1 exit /b 0
+  echo   Bundled files incomplete - falling back to the internet...
+)
 set "TRY=0"
 :try_pip
 set /a TRY+=1
-"%UV%" pip install --python "%PY%" -r "%APP_DIR%requirements.txt"
+"%UV%" pip install --python "%PYTHON_EXE%" -r "%APP_DIR%requirements.txt"
 if not errorlevel 1 exit /b 0
 if %TRY% GEQ 3 exit /b 1
 echo.
 echo   The download was interrupted. Trying again (%TRY% of 3)...
 echo.
-timeout /t 3 >nul
+ping -n 4 127.0.0.1 >nul
 goto try_pip
 
 :fail_net

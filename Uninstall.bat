@@ -8,11 +8,11 @@ echo ================================================================
 echo    UNINSTALL
 echo ================================================================
 echo.
-echo   This removes the engine and Python (about 1.1 GB) from this folder.
+echo   This removes the engine and Python (about 670 MB) from this folder.
 echo.
 echo   Your generated voice files in the "output" folder are KEPT.
 echo.
-echo   IMPORTANT: close the studio first (the black window).
+echo   IMPORTANT: close the studio window first.
 echo.
 choice /C YN /M "   Uninstall now"
 if errorlevel 2 exit /b 0
@@ -23,46 +23,37 @@ if exist "%~dp0uv-cache" rmdir /s /q "%~dp0uv-cache" 2>nul
 if exist "%~dp0uv.exe" del "%~dp0uv.exe" 2>nul
 if exist "%~dp0uvx.exe" del "%~dp0uvx.exe" 2>nul
 if exist "%~dp0uvw.exe" del "%~dp0uvw.exe" 2>nul
+if exist "%~dp0app-template" rmdir /s /q "%~dp0app-template" 2>nul
+if exist "%~dp0app-window" rmdir /s /q "%~dp0app-window" 2>nul
+if exist "%~dp0studio.log" del "%~dp0studio.log" 2>nul
+if exist "%~dp0studio-server.log" del "%~dp0studio-server.log" 2>nul
 
 echo.
 echo   [ok] The engine has been removed.
 echo.
-echo   The voice model itself is stored by Windows here:
-echo   %USERPROFILE%\.cache\huggingface\hub\models--hexgrad--Kokoro-82M
+echo   The voice model itself is in this folder, in the "models" folder.
+echo   It is about 340 MB.
 echo.
-choice /C YN /M "   Delete the voice model too (about 330 MB)"
+choice /C YN /M "   Delete the voice model too (about 340 MB)"
 if errorlevel 2 goto done
 
-set "HUB=%USERPROFILE%\.cache\huggingface\hub"
-set "MODEL=%HUB%\models--hexgrad--Kokoro-82M"
-
-if not exist "%MODEL%" (
+if not exist "%~dp0models" (
   echo   Voice model was not found - nothing to delete.
   goto done
 )
 
-rem 1. remove the model folder itself
-rmdir /s /q "%MODEL%" 2>nul
-
-rem 2. remove the shared blob data that belongs to that model.
-rem Newer huggingface_hub keeps the real file bytes in a shared "blobs"
-rem folder, and a matching .refs file records which model each blob belongs
-rem to. Deleting ONLY the model folder would leave the 330 MB on disk AND
-rem make the next run skip the download entirely - so the blobs must go too.
-rem A blob is only deleted when its .refs file actually names this model, so
-rem every other model in your cache is left untouched.
-set "N=0"
-if exist "%HUB%\blobs" (
-  for /r "%HUB%\blobs" %%F in (*.refs) do (
-    findstr /m /c:"models--hexgrad--Kokoro-82M" "%%F" >nul 2>&1
-    if not errorlevel 1 (
-      del /q "%%~dpnF" >nul 2>&1
-      del /q "%%F" >nul 2>&1
-      set /a N+=1
-    )
-  )
+rem The model is downloaded straight into models\ by the setup file, so there
+rem is no shared cache to unpick and nothing else on the disk refers to it.
+rem An earlier version of this app fetched the model through Hugging Face and
+rem kept it in %USERPROFILE%\.cache\huggingface, which meant the uninstaller
+rem had to hunt through shared blobs to find it. That is no longer the case -
+rem deleting this one folder is the whole job.
+rmdir /s /q "%~dp0models" 2>nul
+if exist "%~dp0models" (
+  echo   [X] Could not delete the models folder. Close the studio and try again.
+) else (
+  echo   [ok] Voice model deleted.
 )
-echo   [ok] Voice model deleted.  (%N% cached file blocks freed)
 
 :done
 echo.

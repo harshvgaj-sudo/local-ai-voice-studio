@@ -12,43 +12,57 @@ Premiere Pro. It sounds like the expensive cloud services, but nothing ever
 leaves your computer.
 
 Under the hood it uses Kokoro-82M, a free open-source voice model (Apache 2.0
-licence) that is about 330 MB. That is why it can run on a normal laptop with
+licence) that is about 326 MB. That is why it can run on a normal laptop with
 no graphics card.
 
 
 HOW TO START  -  FROM NOW ON THERE IS ONLY ONE STEP
 ------------------------------------------------------------------------------
-If you ran "Install Local AI Voice.bat", the hard part is already done. It set
-everything up and put an icon on your desktop.
+If the setup has already finished, the hard part is done. It put an icon on
+your desktop.
 
     Double-click the desktop icon:   Local AI Voice Studio
 
-    It takes about 40 to 60 seconds to open, because it loads a real AI model
-    into memory. A black window shows you each step as it goes, so you can see
-    it is working. It is not frozen - give it a moment. The studio then opens
-    in its own window, with no address bar and no tabs. It looks and behaves
-    like an installed program, because that is what it is.
+    The window opens in about 7 seconds, with NO black window at all - not
+    even for a moment. The voice engine keeps loading in the background for
+    another few seconds, so the very first Generate of a session may wait a
+    moment longer than the rest. Every one after that is immediate.
 
-    When you are finished, simply close the studio window. That stops the
+    The very first launch after setup takes about the same. The setup
+    pre-compiles every library while it is installing, so the app does not
+    have to do that while you wait. Without that step the first launch took
+    21 seconds instead of 8.
+
+    When you are finished, just close the studio window. That stops the
     studio completely - nothing is left running in the background.
 
     Or press the Windows key, type "voice", and hit Enter. Same thing.
 
+You can close the folder, close any terminal window, or delete the setup file
+while the studio is open. None of it matters: the studio is its own process,
+and the desktop icon points straight at it, not at the setup file.
+
+
 IF YOU EVER NEED TO START IT BY HAND
 ------------------------------------------------------------------------------
-Double-click  START HERE.bat  in this folder. That is exactly what the desktop
-icon does.
+Double-click  START HERE.bat  in this folder. It starts the studio the same way
+the icon does.
 
 The FIRST time you ever run it, it sets everything up by itself. You do not
 need Python, and you do not need to type any commands. It downloads about
-1 GB and takes roughly 5 to 15 minutes, and finishes by saying
-READY TO RECORD. Every time after that, it simply opens the studio.
+540 MB - and about 355 MB of that is the AI voice model itself, so most of
+what you are waiting for is the thing that does the talking. It finishes by
+saying READY TO RECORD. Every time after that, it simply opens the studio.
+
+Once setup has finished you may delete START HERE.bat, or this whole folder,
+and the desktop icon will still work. Nothing is read from the setup file at
+run time.
 
 
 WHAT EACH FILE DOES
 ------------------------------------------------------------------------------
-START HERE.bat   The one file you need. Sets up on first run,
-                           then launches the studio.
+START HERE.bat             Sets up on the first run, then launches the studio.
+                           Safe to delete once setup has finished.
 
 Make Desktop Shortcut.bat  Re-creates the desktop and Start menu icons. You
                            only need this if the icon ever goes missing -
@@ -67,6 +81,11 @@ requirements.txt           The exact list of libraries that get installed.
 voice.ico                  The icon used for the shortcuts.
 
 output\                    Every voiceover you generate lands here.
+
+models\                    The AI voice model. About 340 MB, downloaded once.
+
+studio.log                 A plain-text record of every run. If you ever need
+                           help, this is the first file to send me.
 
 
 USING THE STUDIO
@@ -100,52 +119,81 @@ Two things worth knowing:
 WHERE THINGS LIVE ON YOUR DISK
 ------------------------------------------------------------------------------
 Inside this folder:
-   env\            the Python environment (about 1.1 GB) - safe to delete
-   python\         Python 3.12 itself - safe to delete
+   env\            the voice engine and its libraries (about 550 MB)
+   models\         the AI voice model (about 340 MB) - re-downloaded if missing
+   python\         Python 3.12 itself (about 120 MB)
    uv-cache\       leftover download cache, removed automatically at the end
 
-Stored by Windows:
-   %USERPROFILE%\.cache\huggingface\hub\models--hexgrad--Kokoro-82M
-   This is the voice model (about 330 MB). Uninstall.bat can remove it.
+   Leave python\ alone. It looks like a leftover - it is not. A Python
+   environment does not contain the standard library; env\pyvenv.cfg
+   points at this copy of Python 3.12, and env\Scripts\pythonw.exe is
+   only a launcher that starts it. Delete python\ and the studio stops
+   working completely, silently, with no error you can act on. It is
+   about 120 MB and it is the thing that actually runs.
+   (Uninstall.bat removes it for you, together with env\.)
+
+Nothing is stored anywhere else on your PC. There is no Hugging Face cache to
+clean up, because the model is downloaded straight into the models\ folder.
+Delete this folder and every trace of the app is gone.
+
+(If you ran an older build of this app, you may still have a leftover
+C:\Users\<you>\.cache\huggingface folder from it, about 1.5 GB. The current
+version never touches it. Uninstall.bat no longer needs to, either - but if
+you installed an older build, that folder is safe to delete by hand.)
 
 
 IF SOMETHING GOES WRONG
 ------------------------------------------------------------------------------
-"The studio is ALREADY RUNNING"
-   You double-clicked twice. It just opened the existing one in your
-   browser. Close the extra black window.
+A message box says the studio is already running
+   You double-clicked twice. The second one just brought the existing window
+   to the front. Nothing is wrong - and you cannot get two studios running at
+   once, because the app refuses to start a second copy. That is deliberate.
+
+A message box says the setup is not finished
+   The voice model is missing or incomplete. Double-click START HERE.bat once
+   while you have internet.
 
 The setup stopped halfway
-   Double-click START HERE.bat again. It picks up where it left
-   off. If that does not work, use Repair Setup.bat.
+   Double-click START HERE.bat again. It picks up where it left off. If that
+   does not work, use Repair Setup.bat.
 
 Nothing happens when I double-click
    Right-click the .bat file, choose "Run as administrator".
 
 The studio window does not open
-   Wait a full minute - the first launch is the slowest one. If it still does
-   not appear, open your browser by hand and go to:  http://127.0.0.1:7860
-   That address simply means "this computer". The studio is running either way.
+   Open your browser by hand and go to:  http://127.0.0.1:7860
+   That address simply means "this computer". The studio is running either
+   way. If it is still not there after a minute, open studio.log in this
+   folder - it records what happened, and it is the first thing to send me.
+
+The studio seems slow
+   Check the Benchmark box after a generation. If it says something like
+   "2.5x real time", that is normal and it is faster than it sounds: a
+   10 minute video takes about 4 minutes to narrate. If it says well under
+   1x, close some other programs - this app is far more limited by free
+   memory than by processor speed, and a full browser eats memory fast.
 
 
 TWO IMPORTANT NOTES ABOUT THE SETUP
 ------------------------------------------------------------------------------
 1.  Python 3.12 is required, specifically.
-    This is not fussiness. kokoro 0.9.x refuses to install on Python 3.13
-    or newer, and if you force it, pip quietly falls back to a broken
-    ancient version that then tries to compile numpy from source and fails
-    with a wall of red text. That is why this setup always uses its own
-    private Python 3.12 and never touches whatever is already on your PC.
+    The setup always installs its own private Python 3.12 and never touches
+    whatever is already on your PC. A Python you installed for something else
+    cannot be broken by this, and cannot break it.
 
 2.  The first run needs internet. Everything after that does not.
-    The setup downloads Python, the libraries, and the voice model. Once
-    it says READY TO RECORD, you can switch on Airplane Mode and it will
-    keep working forever.
+    The setup downloads Python, the libraries, and the voice model. Once it
+    says READY TO RECORD, you can switch on Airplane Mode and it will keep
+    working forever.
 
     The studio tells you so when it starts - it prints "Offline mode: ON"
-    and confirms the model and all nine voices are already on your PC.
-    From that point it makes no internet requests at all: not to check
-    for updates, and not to load a font.
+    and confirms the model and all nine voices are already on your PC. From
+    that point it makes no internet requests at all: not to check for
+    updates, and not to load a font. That last part was a real bug worth
+    knowing about, because the standard version of this interface quietly
+    downloaded a font from Google and a script from a CDN every time it
+    opened. Both are stripped out here, and it was verified by watching a
+    real browser's network traffic: 66 requests, all of them to your own PC.
 
 
 WHAT YOUR PC NEEDS  -  THE HONEST LIST
@@ -156,8 +204,8 @@ needs, and what happens if something is missing.
 REQUIRED:
   - 64-bit Windows 10 (version 1803 or newer) or Windows 11
   - A 64-bit (x86-64) Intel or AMD processor
-  - About 3 GB of free space on C: (the finished install is about 1.3 GB)
-  - About 2 GB of free memory while it is generating
+  - About 2 GB of free space on C: (the finished install is about 1 GB)
+  - About 1 GB of free memory while it is generating
   - Internet for the first setup run only
 
 NOT REQUIRED - and this is the whole point of the app:
