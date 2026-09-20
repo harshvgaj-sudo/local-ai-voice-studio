@@ -154,8 +154,9 @@ A message box says the setup is not finished
    while you have internet.
 
 The setup stopped halfway
-   Double-click START HERE.bat again. It picks up where it left off. If that
-   does not work, use Repair Setup.bat.
+   Double-click START HERE.bat again. It skips everything already installed
+   and carries on downloading the model from where it stopped, so you do not
+   lose the part you already have. If that does not work, use Repair Setup.bat.
 
 Nothing happens when I double-click
    Right-click the .bat file, choose "Run as administrator".

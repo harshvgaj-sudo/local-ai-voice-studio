@@ -294,8 +294,9 @@ call :banner "COULD NOT DOWNLOAD THE VOICE MODEL"
 echo   The engine is installed, but the voice model did not finish
 echo   downloading.
 echo.
-echo   Just double-click this file again - it will pick up where
-echo   it left off.
+echo   Just double-click this file again. The download carries on from
+echo   where it stopped instead of starting the whole file over, so you
+echo   do not lose the part you already have.
 echo.
 pause
 exit /b 1
