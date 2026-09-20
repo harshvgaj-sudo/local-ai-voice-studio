@@ -28,6 +28,31 @@ if exist "%~dp0app-window" rmdir /s /q "%~dp0app-window" 2>nul
 if exist "%~dp0studio.log" del "%~dp0studio.log" 2>nul
 if exist "%~dp0studio-server.log" del "%~dp0studio-server.log" 2>nul
 
+rem rmdir /s /q and del both return exit code 0 even when they FAIL on a
+rem file that is in use. The only reliable test is whether the thing is
+rem still there afterwards. Without this check the script told the viewer
+rem "[ok] The engine has been removed" while leaving 670 MB on their disk,
+rem because they had not closed the studio window first. Measured: with a
+rem studio running, env\, python\ and models\ all survived deletion and
+rem the exit code was still 0.
+set "LEFTOVER="
+if exist "%~dp0env" set "LEFTOVER=1"
+if exist "%~dp0python" set "LEFTOVER=1"
+if exist "%~dp0app-window" set "LEFTOVER=1"
+if exist "%~dp0studio-server.log" set "LEFTOVER=1"
+
+if defined LEFTOVER (
+  echo.
+  echo   [X] Some files could not be removed, because the studio is still
+  echo       running. Windows will not delete files that are in use.
+  echo.
+  echo       Close the studio window, then run this file again.
+  echo       Nothing is broken - the studio is just holding its own files.
+  echo.
+  pause
+  exit /b 1
+)
+
 echo.
 echo   [ok] The engine has been removed.
 echo.
